@@ -1,27 +1,34 @@
 from PySide6.QtWidgets import QApplication, QWidget, QListWidget, QVBoxLayout
 import sys
+import os
 
 class DepartmentList(QWidget):
     def __init__(self):
         super().__init__()
         listDepartment = QListWidget()
 
-        listDepartment.addItem("Concept")
-        listDepartment.addItem("Modeling")
-        listDepartment.addItem("Layout")
-        listDepartment.addItem("Animation")
+        rootDir = "C:\workspace\learning\lmn_tools"
 
-        listDepartment.itemClicked.connect()
+        getListDir = [f for f in os.listdir(rootDir) if os.path.isdir(os.path.join(rootDir, f))]
 
-        layout = QVBoxLayout()
-        layout.addItem(listDepartment)
+        listDepartment.addItems(getListDir)
+ 
+        # listDepartment.itemClicked.connect()
 
-        self.setLayout(layout)
+        listLayout = QVBoxLayout()
+        listLayout.addWidget(listDepartment)
+
+        # self
+
+        self.setLayout(listLayout)
+
+    # def getListDirName(self):
+
+
+    # def selected_item(self):
+
 
         
-
-
-
 if __name__ == "__main__":
     app = QApplication(sys.argv)        # seperti pembungkus dari semua program untuk di jalankan programnya
     # Membuat window
