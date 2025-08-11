@@ -1,29 +1,37 @@
-from PySide6.QtWidgets import QApplication, QWidget, QListWidget, QVBoxLayout
+from PySide6.QtWidgets import QApplication, QWidget, QListWidget, QVBoxLayout, QPushButton, QListWidgetItem
+from PySide6.QtCore import Qt
 import sys
 import os
+
+CustomObjectRole = Qt.UserRole + 1
 
 class DepartmentList(QWidget):
     def __init__(self):
         super().__init__()
-        listDepartment = QListWidget()
+        
+
+        self.listDepartment = QListWidget()
 
         rootDir = "C:\workspace\learning\lmn_tools"
 
-        getListDir = [f for f in os.listdir(rootDir) if os.path.isdir(os.path.join(rootDir, f))]
+        self.getListDir = [f for f in os.listdir(rootDir) if os.path.isdir(os.path.join(rootDir, f))]
 
-        listDepartment.addItems(getListDir)
- 
-        # listDepartment.itemClicked.connect()
+        for list in self.getListDir:
+            self.listDepartment.addItems(list.name)
+            self.listDepartment.itemClicked.connect(self.get_list_dir_name)
+        
+        # self.signal = QListWidgetItem(self.getsignal)
+        # self.signal.text()
 
         listLayout = QVBoxLayout()
-        listLayout.addWidget(listDepartment)
+        listLayout.addWidget(self.listDepartment)
 
         # self
 
         self.setLayout(listLayout)
 
-    # def getListDirName(self):
-
+    def get_list_dir_name(self):
+        print()
 
     # def selected_item(self):
 

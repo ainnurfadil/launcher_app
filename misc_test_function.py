@@ -1,28 +1,65 @@
-# import os
-# root_dir = "C:\workspace\learning\lmn_tools"
+import sys
+from PySide6.QtCore import pyqtSignal, QSize, Qt
+from PySide6.QtWidgets import QApplication, QWidget, QListWidget, QVBoxLayout, QPushButton
+from PySide6.QtGui import *
 
-# list = os.walk(root_dir)
-# print(list)
+class MyWidget(QWidget):
 
-
-## using os.walk, that showing all the 
-
-#Import os Library
-# import os
-
-# #Travers all the branch of a specified path
-# def getDirectory(apaLhoo):
-#     for (root,dirs,files) in os.walk('C:\workspace\learning\lmn_tools',topdown=True):
-        
-#         return get
+    clicked = pyqtSignal()
+    keyPressed = pyqtSignal(unicode)
     
-# get = getDirectory(3)
-# print(get)
+    def __init__(self, parent = None):
+    
+        QWidget.__init__(self, parent)
+        self.color = QColor(0, 0, 0)
+    
+    def paintEvent(self, event):
+    
+        painter = QPainter()
+        painter.begin(self)
+        painter.fillRect(event.rect(), QBrush(self.color))
+        painter.end()
+    
+    def keyPressEvent(self, event):
+    
+        self.keyPressed.emit(event.text())
+        event.accept()
+    
+    def mousePressEvent(self, event):
+    
+        self.setFocus(Qt.OtherFocusReason)
+        event.accept()
+    
+    def mouseReleaseEvent(self, event):
+    
+        if event.button() == Qt.LeftButton:
+        
+            self.color = QColor(self.color.green(), self.color.blue(),
+                                127 - self.color.red())
+            self.update()
+            self.clicked.emit()
+            event.accept()
+    
+    def sizeHint(self):
+    
+        return QSize(100, 100)
 
-import os
+
 if __name__ == "__main__":
-    for (root,dirs,files) in os.walk('C:\workspace\learning\lmn_tools', topdown=True):
-        print (root)
-        # print (dirs)
-        # print (files)
-        # print ('--------------------------------')
+
+    app = QApplication(sys.argv)
+    window = QWidget()
+    
+    mywidget = MyWidget()
+    label = QLabel()
+    
+    mywidget.clicked.connect(label.clear)
+    mywidget.keyPressed.connect(label.setText)
+    
+    layout = QVBoxLayout()
+    layout.addWidget(mywidget)
+    layout.addWidget(label)
+    window.setLayout(layout)
+    
+    window.show()
+    sys.exit(app.exec_())
