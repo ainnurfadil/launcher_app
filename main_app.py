@@ -1,8 +1,5 @@
 from PySide6.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QHBoxLayout, QWidget     # Mengimport componen dari Qt
-from search_bar import EditText
-from info_panel import InfoSidePanel
-from list_department import DepartmentList
-from button import ButtonAppsHolder
+import library as library
 import sys              # sys adalah modul untuk memprocess argumen command line
 
 class LauncherApps(QMainWindow):
@@ -10,10 +7,10 @@ class LauncherApps(QMainWindow):
         super().__init__()
         self.setWindowTitle("Apps Launcher")
 
-        panelButton = ButtonAppsHolder()
-        panelInfo = InfoSidePanel()
-        panelList = DepartmentList()
-        panelSearch = EditText()
+        panelButton = library.ButtonAppsHolder()
+        panelInfo = library.InfoSidePanel()
+        panelList = library.DepartmentList()
+        panelSearch = library.EditText()
 
         # layout apps content
         layoutContent = QHBoxLayout()
