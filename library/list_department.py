@@ -1,9 +1,10 @@
 from PySide6.QtWidgets import QApplication, QWidget, QListWidget, QVBoxLayout, QPushButton, QListWidgetItem
-# from PySide6.QtCore import Qt
+from PySide6.QtCore import Signal
 import sys
 import os
 
 class DepartmentList(QWidget):
+    pathSelected = Signal(str)
     def __init__(self):
         super().__init__()
 
@@ -32,12 +33,13 @@ class DepartmentList(QWidget):
 
     def get_list_dir_name(self,item):
         self.getText = item.text()
-        self.getPathDepartment = f".\lmn_tools\{self.getText}"
-        print(self.getPathDepartment)
+        self.getPathDepartment = os.path.join("\\lmn_tools\\",self.getText)
+        # print(self.getPathDepartment)
+        self.pathSelected.emit(self.getPathDepartment)
     
-    def main(self):
-        self.getDataPath = self.getPathDepartment
-        return self.getDataPath
+    # def main(self):
+    #     self.getDataPath = self.getPathDepartment
+    #     return self.getDataPath
     
     @staticmethod
     def example():

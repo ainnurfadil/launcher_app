@@ -2,7 +2,7 @@ from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QWidget, QPushButton, QApplication, QGridLayout
 import sys
 import os
-from . import list_department
+from .list_department import DepartmentList
 
 
 class ButtonAppsHolder(QWidget):
@@ -10,23 +10,38 @@ class ButtonAppsHolder(QWidget):
         super().__init__(parent)
         # apps1Button = QPushButton(icon=QIcon("icon\owl.png"),text="apps 1",parent=self)
         # apps1Button.setFixedSize(100,100)
-
-        rootDir = list_department.DepartmentList.main()
-
-        getListDir = [f for f in os.listdir(rootDir) if os.path.isdir(os.path.join(rootDir, f))]
         
-        grid = QGridLayout()
+        self.rootDir = None
+        self.emitFromDepartmentList = DepartmentList()
+        self.emitFromDepartmentList.pathSelected.connect(self.update_root_dir)
 
+        self.grid = QGridLayout()
+                
+
+        self.setLayout(self.grid)
+
+    def update_root_dir(self,path):
+        self.rootDir = path
+        print(f"selected dir : {self.rootDir}")
+        getListDir = [f for f in os.listdir(self.rootDir) if os.path.isdir(os.path.join(self.rootDir, f))]
         positions = [(i,j) for i in range(4) for j in range(3)]
-
+    
         for positions, getListDir in zip(positions, getListDir):
             button = QPushButton(getListDir)
             button.setFixedSize(200,100)
             button.setCheckable(True)
+            self.grid.addWidget(button, *positions)
+        # self.show_button()
+        
+    # def show_button(self):
 
-            grid.addWidget(button, *positions)
+    #     # for i in reversed(range(1, self.grid.count())):
+    #     #     widget = self.grid.itemAt(i).widget()
+    #     #     if widget:
+    #     #         widget.setParent(None)
 
-        self.setLayout(grid)
+    #     # if not self.rootDir:
+    #     #     return
 
 
 
