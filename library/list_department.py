@@ -19,7 +19,6 @@ class DepartmentList(QWidget):
             # self.buttonCLicked = self.listDepartment.itemClicked(self.get_list_dir_name)
             
         self.listDepartment.itemClicked.connect(self.get_list_dir_name)
-            
         
         # self.signal = QListWidgetItem(self.getsignal)
         # self.signal.text()
@@ -33,7 +32,7 @@ class DepartmentList(QWidget):
 
     def get_list_dir_name(self,item):
         self.getText = item.text()
-        self.getPathDepartment = os.path.join("\\lmn_tools\\",self.getText)
+        self.getPathDepartment = os.path.join(".\\lmn_tools\\",self.getText)
         # print(self.getPathDepartment)
         self.pathSelected.emit(self.getPathDepartment)
     

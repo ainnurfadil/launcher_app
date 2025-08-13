@@ -4,7 +4,6 @@ import sys
 import os
 from .list_department import DepartmentList
 
-
 class ButtonAppsHolder(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -15,34 +14,30 @@ class ButtonAppsHolder(QWidget):
         self.emitFromDepartmentList = DepartmentList()
         self.emitFromDepartmentList.pathSelected.connect(self.update_root_dir)
 
-        self.grid = QGridLayout()
-                
-
+        self.grid = QGridLayout()        
+        self.grid.addWidget(self.emitFromDepartmentList, 0, 0, 1, 3)
         self.setLayout(self.grid)
+
 
     def update_root_dir(self,path):
         self.rootDir = path
         print(f"selected dir : {self.rootDir}")
-        getListDir = [f for f in os.listdir(self.rootDir) if os.path.isdir(os.path.join(self.rootDir, f))]
-        positions = [(i,j) for i in range(4) for j in range(3)]
-    
-        for positions, getListDir in zip(positions, getListDir):
-            button = QPushButton(getListDir)
+
+        for i in reversed(range(1, self.grid.count())):
+            if i == 0: continue  # Keep DepartmentList widget
+            widget = self.grid.itemAt(i).widget()
+            if widget:
+                widget.setParent(None)        
+        
+        self.getListDir = [f for f in os.listdir(self.rootDir) if os.path.isdir(os.path.join(self.rootDir, f))]
+        self.positions = [(i,j) for i in range(4) for j in range(3)]
+
+        for positions, getDir in zip(self.positions,self.getListDir):
+            button = QPushButton(getDir)
             button.setFixedSize(200,100)
             button.setCheckable(True)
             self.grid.addWidget(button, *positions)
-        # self.show_button()
         
-    # def show_button(self):
-
-    #     # for i in reversed(range(1, self.grid.count())):
-    #     #     widget = self.grid.itemAt(i).widget()
-    #     #     if widget:
-    #     #         widget.setParent(None)
-
-    #     # if not self.rootDir:
-    #     #     return
-
 
 
 if __name__ == "__main__":
