@@ -66,32 +66,99 @@ class ButtonAppsHolder(QtWidgets.QWidget):
 
         # ubah jadi long hand
         
-        # self.getListDir = [f for f in os.listdir(self.root_dir) if os.path.isdir(os.path.join(self.root_dir, f))]
-        self.getListDir = []
-        for f in os.listdir(self.root_dir):
-            full_path = os.path.join(self.root_dir, f)
+        # self.get_list_dir = [f for f in os.listdir(self.root_dir) if os.path.isdir(os.path.join(self.root_dir, f))]
+        # To get Directory ptah address
+        self.get_list_dir = []
+        for dir in os.listdir(self.root_dir):
+            full_path = os.path.join(self.root_dir, dir)
             if os.path.isdir(full_path):
-               self.getListDir.append(f)
+               self.get_list_dir.append(dir)
+
+        # print(self.get_list_dir)
+        # output ['AdvancedRenamer', 'PureRef', 'ReNamer', 'ScreenToGif', 'UpdateCinesync', 'VideoToGif']
+
+        # get path file .png
+        self.get_file_png_list = []
+        for png_file in os.listdir(self.root_dir):
+            full_path = os.path.join(self.root_dir,png_file) # mendapatkan path directoriy
+            png_found = None        # Nilai awal ketika tidak di temukan file PNG
+            print(full_path)
+            if os.path.isdir(full_path):
+                for a in os.listdir(full_path):
+                    b = os.path.join(full_path,a)
+                    # print(b)
+                    if os.path.isfile(b):
+                        if b.endswith(".png"):
+                            png_found = b       # Ketika file PNG di temukan akan mengangkut nilai berupa path address
+            
+            if png_found is not None:
+                self.get_file_png_list.append(png_found)    # jika terdapat nilai paath maka akan di append
+            else:
+                self.get_file_png_list.append("")           # jika tidak akan mengirim string kosong
+
+        # print(self.get_file_png_list)
+
+        # get path file .txt
+        self.get_file_txt_list = []
+        for txt_file in os.listdir(self.root_dir):
+            full_path = os.path.join(self.root_dir,txt_file) # mendapatkan path directoriy
+            txt_found = None        # Nilai awal ketika tidak di temukan file TXT
+            print(full_path)
+            if os.path.isdir(full_path):
+                for a in os.listdir(full_path):
+                    b = os.path.join(full_path,a)
+                    # print(b)
+                    if os.path.isfile(b):
+                        if b.endswith(".txt"):
+                            txt_found = b       # Ketika file TXT di temukan akan mengangkut nilai berupa path address
+            
+            if txt_found is not None:
+                self.get_file_txt_list.append(txt_found)    # jika terdapat nilai paath maka akan di append
+            else:
+                self.get_file_txt_list.append("")           # jika tidak akan mengirim string kosong
+       
+        # get path file .lnk
+        self.get_file_lnk_list = []
+        for lnk_file in os.listdir(self.root_dir):
+            full_path = os.path.join(self.root_dir,lnk_file) # mendapatkan path directoriy
+            lnk_found = None        # Nilai awal ketika tidak di temukan file TXT
+            print(full_path)
+            if os.path.isdir(full_path):
+                for a in os.listdir(full_path):
+                    b = os.path.join(full_path,a)
+                    # print(b)
+                    if os.path.isfile(b):
+                        if b.endswith(".lnk"):
+                            lnk_found = b       # Ketika file TXT di temukan akan mengangkut nilai berupa path address
+            
+            if lnk_found is not None:
+                self.get_file_lnk_list.append(lnk_found)    # jika terdapat nilai paath maka akan di append
+            else:
+                self.get_file_lnk_list.append("")           # jika tidak akan mengirim string kosong
+
             
         # self.positions = [(i,j) for i in range(4) for j in range(3)] i and j change to row and col
+        # To get positions coloumb coordinate
         self.positions = []
         for row in range(4):
             for col in range(3):
                 self.positions.append((row,col))
 
-        for positions, getDir in zip(self.positions, self.getListDir):
-            button = QtWidgets.QPushButton(getDir)
+        # button properties
+        for positions, get_dir, get_png in zip(self.positions, self.get_list_dir, self.get_file_png_list):
+            button = QtWidgets.QPushButton(icon=QtGui.QIcon(get_png),text=get_dir)
             button.setFixedSize(200, 100)
             button.setCheckable(True)
             self.grid.addWidget(button, *positions)
 
     def cleanup_button(self):
-        for i in reversed(range(1, self.grid.count())):
+        for i in reversed(range(0, self.grid.count())):
             if i == 0:
                 continue  
             widget = self.grid.itemAt(i).widget()
             if widget:
                 widget.setParent(None)
+
 
 # List Department
 class DepartmentList(QtWidgets.QWidget):
@@ -102,7 +169,7 @@ class DepartmentList(QtWidgets.QWidget):
 
         list_department = QtWidgets.QListWidget()
 
-        self.root_dir = r"I:\workspace-devstage\RND\fadil\launcher_app\lmn_tools"
+        self.root_dir = r"C:\workspace\learning\launcher_app\lmn_tools"
 
         self.list_dir = []
         for item in os.listdir(self.root_dir):
