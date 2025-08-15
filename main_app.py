@@ -41,12 +41,15 @@ class LauncherApps(QtWidgets.QMainWindow):
         result.setLayout(all_layout_result)
 
         # menampung sinyal
-        panel_list.path_selected.connect(panel_button.select_department)
+        panel_list.path_selected.connect(panel_button.select_department) # Dari sumber ke target sinyal
+        panel_button.list_transfer.connect(panel_info.get_connect_from_button)
 
         self.setCentralWidget(result)
 
 # Button apps
 class ButtonAppsHolder(QtWidgets.QWidget):
+    list_transfer = QtCore.Signal(list)
+
     def __init__(self, parent=None):
         super().__init__(parent)
         # apps1Button = QPushButton(icon=QIcon("icon\owl.png"),text="apps 1",parent=self)
@@ -82,7 +85,7 @@ class ButtonAppsHolder(QtWidgets.QWidget):
         for png_file in os.listdir(self.root_dir):
             full_path = os.path.join(self.root_dir,png_file) # mendapatkan path directoriy
             png_found = None        # Nilai awal ketika tidak di temukan file PNG
-            print(full_path)
+            # print(full_path)
             if os.path.isdir(full_path):
                 for a in os.listdir(full_path):
                     b = os.path.join(full_path,a)
@@ -103,7 +106,7 @@ class ButtonAppsHolder(QtWidgets.QWidget):
         for txt_file in os.listdir(self.root_dir):
             full_path = os.path.join(self.root_dir,txt_file) # mendapatkan path directoriy
             txt_found = None        # Nilai awal ketika tidak di temukan file TXT
-            print(full_path)
+            # print(full_path)
             if os.path.isdir(full_path):
                 for a in os.listdir(full_path):
                     b = os.path.join(full_path,a)
@@ -122,7 +125,7 @@ class ButtonAppsHolder(QtWidgets.QWidget):
         for lnk_file in os.listdir(self.root_dir):
             full_path = os.path.join(self.root_dir,lnk_file) # mendapatkan path directoriy
             lnk_found = None        # Nilai awal ketika tidak di temukan file TXT
-            print(full_path)
+            # print(full_path)
             if os.path.isdir(full_path):
                 for a in os.listdir(full_path):
                     b = os.path.join(full_path,a)
@@ -145,11 +148,15 @@ class ButtonAppsHolder(QtWidgets.QWidget):
                 self.positions.append((row,col))
 
         # button properties
-        for positions, get_dir, get_png in zip(self.positions, self.get_list_dir, self.get_file_png_list):
+        for positions, get_dir, get_png, get_txt, get_lnk in zip(self.positions, self.get_list_dir, self.get_file_png_list, self.get_file_txt_list, self.get_file_lnk_list):
+            data_list_each_button = [get_dir,get_png,get_txt,get_lnk]
             button = QtWidgets.QPushButton(icon=QtGui.QIcon(get_png),text=get_dir)
             button.setFixedSize(200, 100)
             button.setCheckable(True)
+            button.clicked.connect(lambda checked, data=data_list_each_button: self.slot_data_button_checked(data))
+
             self.grid.addWidget(button, *positions)
+            # print(self.data_list_each_button)
 
     def cleanup_button(self):
         for i in reversed(range(0, self.grid.count())):
@@ -158,6 +165,12 @@ class ButtonAppsHolder(QtWidgets.QWidget):
             widget = self.grid.itemAt(i).widget()
             if widget:
                 widget.setParent(None)
+
+    def slot_data_button_checked(self,data_list_each_button):
+        get_list_data_button = data_list_each_button
+        print(f"emit from slot_data_button_checked= {get_list_data_button}")
+        self.list_transfer.emit(get_list_data_button)
+        
 
 
 # List Department
@@ -188,38 +201,73 @@ class DepartmentList(QtWidgets.QWidget):
     def get_list_dir_name(self, item):
         self.item_text = item.text()
         self.path_department = os.path.join(self.root_dir, self.item_text)
+        print(f"emmit{self.path_department}")
         self.path_selected.emit(self.path_department)
 
 # Info Panel
 class InfoSidePanel(QtWidgets.QWidget):
     def __init__(self):
         super().__init__()
+
+        # Layout
+        self.info_layout = QtWidgets.QVBoxLayout()
+
+        self.setLayout(self.info_layout)
+    
+    def get_connect_from_button(self, details):
+        self.update_details_information(details)
+
+    def update_details_information(self, list_details):
+        list_button_details = list_details             # Urutan data list yang di dapat [get_dir,get_png,get_txt,get_lnk]
+        self.title_list = list_button_details[0]
+        self.icon_list = list_button_details[1]
+        self.description_list = list_button_details[2]
+        self.shortcut_list = list_button_details[3]
+
+        # print(f"got data list from button: {self.title_list}")
+        # print(f"got data list from button: {self.icon_list}")
+        # print(f"got data list from button: {self.description_list}")
+        # print(f"got data list from button: {self.shortcut_list}")
+        self.delete_layout_information()
+
+        file = open(self.description_list, mode="r")
+
+
         # Label Judul Applikasi
-        title_apps = QtWidgets.QLabel("Apps 1")
+        title_apps = QtWidgets.QLabel(f"{self.title_list}")
         title_apps.setFixedSize(500, 50)
 
         # Label Icon applikasi
         icon_apps = QtWidgets.QLabel()
-        icon_apps.setFixedSize(500, 500)
-        icon_apps.setPixmap(QtGui.QPixmap("icon\owl.png"))
+        icon_apps.setFixedSize(500, 250)
+        icon_apps.setPixmap(QtGui.QPixmap(self.icon_list))
 
         # Information Window
         apps_description = QtWidgets.QPlainTextEdit()
-        apps_description.setFixedSize(500, 50)
-        apps_description.insertPlainText("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus imperdiet tortor nec velit facilisis finibus. Quisque quis gravida leo, vitae blandit est. Suspendisse potenti. Duis mattis odio a turpis congue pharetra. Aliquam erat ex, tincidunt ut hendrerit a, vehicula scelerisque risus. Fusce fermentum mauris ac lacus mollis, et iaculis elit scelerisque. Mauris eu pharetra magna. Suspendisse vestibulum sagittis urna, ut suscipit ligula efficitur ut.")
+        apps_description.setFixedSize(500, 250)
+        apps_description.insertPlainText(file.read())
 
         # Button Run
         run_button = QtWidgets.QPushButton("RUN")
         run_button.setFixedSize(500, 50)
 
-        # Layout
-        layout = QtWidgets.QVBoxLayout()
-        layout.addWidget(title_apps)
-        layout.addWidget(icon_apps)
-        layout.addWidget(apps_description)
-        layout.addWidget(run_button)
+        self.info_layout.addWidget(title_apps)
+        self.info_layout.addWidget(icon_apps)
+        self.info_layout.addWidget(apps_description)
+        self.info_layout.addWidget(run_button)
 
-        self.setLayout(layout)
+    def delete_layout_information(self):
+        for item in reversed(range(0,self.info_layout.count())):
+            if item == 0:
+                continue
+            widget_item = self.layout.itemAt(item)
+            if widget_item is not None:
+                widget = widget_item.widget()
+                if widget is not None:
+                    widget.setParent(None)
+
+
+    
 
 # Search Bar
 class EditText(QtWidgets.QWidget):
