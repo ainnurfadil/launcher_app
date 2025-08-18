@@ -182,7 +182,7 @@ class DepartmentList(QtWidgets.QWidget):
 
         list_department = QtWidgets.QListWidget()
 
-        self.root_dir = r"C:\workspace\learning\launcher_app\lmn_tools"
+        self.root_dir = r"J:\learn code\launcher_app\lmn_tools"
 
         self.list_dir = []
         for item in os.listdir(self.root_dir):
@@ -260,7 +260,7 @@ class InfoSidePanel(QtWidgets.QWidget):
         for item in reversed(range(0,self.info_layout.count())):
             if item == 0:
                 continue
-            widget_item = self.layout.itemAt(item)
+            widget_item = self.info_layout.itemAt(item)
             if widget_item is not None:
                 widget = widget_item.widget()
                 if widget is not None:
