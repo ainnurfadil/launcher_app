@@ -97,7 +97,7 @@ class ButtonAppsHolder(QtWidgets.QWidget):
             if png_found is not None:
                 self.get_file_png_list.append(png_found)    # jika terdapat nilai paath maka akan di append
             else:
-                self.get_file_png_list.append("")           # jika tidak akan mengirim string kosong
+                self.get_file_png_list.append(None)           # jika tidak akan mengirim string kosong
 
         # print(self.get_file_png_list)
 
@@ -118,13 +118,13 @@ class ButtonAppsHolder(QtWidgets.QWidget):
             if txt_found is not None:
                 self.get_file_txt_list.append(txt_found)    # jika terdapat nilai paath maka akan di append
             else:
-                self.get_file_txt_list.append("")           # jika tidak akan mengirim string kosong
+                self.get_file_txt_list.append(None)           # jika tidak akan mengirim string kosong
        
         # get path file .lnk
         self.get_file_lnk_list = []
         for lnk_file in os.listdir(self.root_dir):
             full_path = os.path.join(self.root_dir,lnk_file) # mendapatkan path directoriy
-            lnk_found = None        # Nilai awal ketika tidak di temukan file TXT
+            lnk_found = None        # Nilai awal ketika tidak di temukan file LNK
             # print(full_path)
             if os.path.isdir(full_path):
                 for a in os.listdir(full_path):
@@ -132,12 +132,12 @@ class ButtonAppsHolder(QtWidgets.QWidget):
                     # print(b)
                     if os.path.isfile(b):
                         if b.endswith(".lnk"):
-                            lnk_found = b       # Ketika file TXT di temukan akan mengangkut nilai berupa path address
+                            lnk_found = b       # Ketika file LNK di temukan akan mengangkut nilai berupa path address
             
             if lnk_found is not None:
                 self.get_file_lnk_list.append(lnk_found)    # jika terdapat nilai paath maka akan di append
             else:
-                self.get_file_lnk_list.append("")           # jika tidak akan mengirim string kosong
+                self.get_file_lnk_list.append(None)           # jika tidak akan mengirim string kosong
 
             
         # self.positions = [(i,j) for i in range(4) for j in range(3)] i and j change to row and col
@@ -152,10 +152,11 @@ class ButtonAppsHolder(QtWidgets.QWidget):
             data_list_each_button = [get_dir,get_png,get_txt,get_lnk]
             button = QtWidgets.QPushButton(icon=QtGui.QIcon(get_png),text=get_dir)
             button.setFixedSize(200, 100)
+            # button.move()
             button.setCheckable(True)
-            button.clicked.connect(lambda checked, data=data_list_each_button: self.slot_data_button_checked(data))
-
-            self.grid.addWidget(button, *positions)
+            button.setProperty("button_data", data_list_each_button)
+            button.clicked.connect(self.slot_data_button_checked)
+            self.grid.addWidget(button, *positions, alignment=QtCore.Qt.AlignmentFlag.AlignTop)
             # print(self.data_list_each_button)
 
     def cleanup_button(self):
@@ -166,8 +167,8 @@ class ButtonAppsHolder(QtWidgets.QWidget):
             if widget:
                 widget.setParent(None)
 
-    def slot_data_button_checked(self,data_list_each_button):
-        get_list_data_button = data_list_each_button
+    def slot_data_button_checked(self):
+        get_list_data_button = self.sender().property("button_data")
         print(f"emit from slot_data_button_checked= {get_list_data_button}")
         self.list_transfer.emit(get_list_data_button)
         
@@ -182,7 +183,9 @@ class DepartmentList(QtWidgets.QWidget):
 
         list_department = QtWidgets.QListWidget()
 
-        self.root_dir = r"J:\learn code\launcher_app\lmn_tools"
+        self.root_dir = r"lmn_tools"
+
+        list_department.setFixedSize(300,800)
 
         self.list_dir = []
         for item in os.listdir(self.root_dir):
@@ -213,6 +216,7 @@ class InfoSidePanel(QtWidgets.QWidget):
         self.info_layout = QtWidgets.QVBoxLayout()
 
         self.setLayout(self.info_layout)
+        self.setFixedSize(500,800)
     
     def get_connect_from_button(self, details):
         self.update_details_information(details)
@@ -230,31 +234,44 @@ class InfoSidePanel(QtWidgets.QWidget):
         # print(f"got data list from button: {self.shortcut_list}")
         self.delete_layout_information()
 
-        file = open(self.description_list, mode="r")
-
-
         # Label Judul Applikasi
         title_apps = QtWidgets.QLabel(f"{self.title_list}")
         title_apps.setFixedSize(500, 50)
 
         # Label Icon applikasi
         icon_apps = QtWidgets.QLabel()
-        icon_apps.setFixedSize(500, 250)
-        icon_apps.setPixmap(QtGui.QPixmap(self.icon_list))
+        icon_apps.setFixedSize(500, 200)
+
+
+        # Error handling ketika tidak ditemukan file image nya
+        if self.icon_list is not None:
+            icon_apps.setPixmap(QtGui.QPixmap(self.icon_list))
+        else:
+            icon_apps.setPixmap(QtGui.QPixmap(r"C:\workspace\learning\launcher_app\icon\owl.png"))
 
         # Information Window
         apps_description = QtWidgets.QPlainTextEdit()
-        apps_description.setFixedSize(500, 250)
-        apps_description.insertPlainText(file.read())
-
+        apps_description.setFixedSize(500, 350)
+        
+        # Error handling ketika tidak ditemukan file description nya
+        if self.description_list is not None:
+            file = open(self.description_list, mode="r")
+            apps_description.insertPlainText(file.read())
+        else:
+            apps_description.insertPlainText("There is no description here")
+        
         # Button Run
         run_button = QtWidgets.QPushButton("RUN")
         run_button.setFixedSize(500, 50)
+        run_button.clicked.connect(self.run_button_clicked)
 
         self.info_layout.addWidget(title_apps)
         self.info_layout.addWidget(icon_apps)
         self.info_layout.addWidget(apps_description)
         self.info_layout.addWidget(run_button)
+
+    def run_button_clicked(self):
+        os.startfile(self.shortcut_list)
 
     def delete_layout_information(self):
         for item in reversed(range(0,self.info_layout.count())):
@@ -267,14 +284,12 @@ class InfoSidePanel(QtWidgets.QWidget):
                     widget.setParent(None)
 
 
-    
-
 # Search Bar
 class EditText(QtWidgets.QWidget):
     def __init__(self):
         super().__init__()
         textBar = QtWidgets.QLineEdit("Search Here")
-        textBar.setFixedSize(500, 50)
+        textBar.setFixedSize(1100, 50)
 
         layout = QtWidgets.QHBoxLayout()
 
