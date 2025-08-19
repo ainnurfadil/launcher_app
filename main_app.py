@@ -14,19 +14,23 @@ class LauncherApps(QtWidgets.QMainWindow):
 
         panel_button = ButtonAppsHolder()
         panel_button.setFixedSize(700, 800)
-        panel_button.setSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
+        panel_button.setSizePolicy(QtWidgets.QSizePolicy.Fixed, 
+                                   QtWidgets.QSizePolicy.Fixed)
 
         panel_info = InfoSidePanel()
         panel_info.setFixedSize(500, 800)
-        panel_info.setSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
+        panel_info.setSizePolicy(QtWidgets.QSizePolicy.Fixed, 
+                                 QtWidgets.QSizePolicy.Fixed)
 
         panel_list = DepartmentList()
         panel_list.setFixedSize(300, 900)
-        panel_list.setSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
+        panel_list.setSizePolicy(QtWidgets.QSizePolicy.Fixed, 
+                                 QtWidgets.QSizePolicy.Fixed)
 
         panel_search = EditText()
         panel_search.setFixedSize(1170, 60)
-        panel_search.setSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
+        panel_search.setSizePolicy(QtWidgets.QSizePolicy.Fixed, 
+                                   QtWidgets.QSizePolicy.Fixed)
 
         # layout apps content
         layout_content = QtWidgets.QHBoxLayout()
@@ -168,16 +172,27 @@ class ButtonAppsHolder(QtWidgets.QWidget):
             for col in range(3):
                 self.positions.append((row,col))
 
+        self.button_group = QtWidgets.QButtonGroup()
+        self.button_group.setExclusive(True)
+
         # button properties
-        for positions, get_dir, get_png, get_txt, get_lnk in zip(self.positions, self.get_list_dir, self.get_file_png_list, self.get_file_txt_list, self.get_file_lnk_list):
+        for positions, get_dir, get_png, get_txt, get_lnk in zip(self.positions, 
+                                                                 self.get_list_dir, 
+                                                                 self.get_file_png_list, 
+                                                                 self.get_file_txt_list, 
+                                                                 self.get_file_lnk_list):
             data_list_each_button = [get_dir,get_png,get_txt,get_lnk]
-            button = QtWidgets.QPushButton(icon=QtGui.QIcon(get_png),text=get_dir)
+            button = QtWidgets.QPushButton(icon=QtGui.QIcon(get_png),
+                                           text=get_dir)
+            
             button.setFixedSize(200, 100)
             button.setCheckable(True)
             button.setProperty("button_data", data_list_each_button)
-            button.setSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
+            button.setSizePolicy(QtWidgets.QSizePolicy.Fixed, 
+                                 QtWidgets.QSizePolicy.Fixed)
             button.clicked.connect(self.slot_data_button_checked)
             button.setContentsMargins(10,10,10,10)
+            self.button_group.addButton(button)
             self.grid.addWidget(button, *positions, alignment=(QtCore.Qt.AlignmentFlag.AlignTop | QtCore.Qt.AlignmentFlag.AlignLeft ))
             
             
@@ -192,6 +207,10 @@ class ButtonAppsHolder(QtWidgets.QWidget):
         get_list_data_button = self.sender().property("button_data")
         print(f"emit from slot_data_button_checked= {get_list_data_button}")
         self.list_transfer.emit(get_list_data_button)
+        
+        for button in self.button_group.buttons():
+            if button.isChecked():
+                print(f"Button {button.text()} is checked")
         
 
 # List Department
@@ -223,7 +242,8 @@ class DepartmentList(QtWidgets.QWidget):
 
     def get_list_dir_name(self, item):
         self.item_text = item.text()
-        self.path_department = os.path.join(self.root_dir, self.item_text)
+        self.path_department = os.path.join(self.root_dir, 
+                                            self.item_text)
         print(f"emmit{self.path_department}")
         self.path_selected.emit(self.path_department)
 
@@ -261,9 +281,9 @@ class InfoSidePanel(QtWidgets.QWidget):
 
         # Error handling ketika tidak ditemukan file image nya
         if self.icon_list is not None:
-            icon_apps.setPixmap(QtGui.QPixmap(self.icon_list))
+            icon_apps.setPixmap(QtGui.QPixmap(self.icon_list).scaled(100,100))
         else:
-            icon_apps.setPixmap(QtGui.QPixmap(r"C:\workspace\learning\launcher_app\icon\owl.png"))
+            icon_apps.setPixmap(QtGui.QPixmap(r"C:\workspace\learning\launcher_app\icon\owl.png").scaled(100,100))
 
         # Information Window
         apps_description = QtWidgets.QPlainTextEdit()
