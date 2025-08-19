@@ -10,11 +10,23 @@ class LauncherApps(QtWidgets.QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Apps Launcher")
+        self.setFixedSize(1500, 900)
 
         panel_button = ButtonAppsHolder()
+        panel_button.setFixedSize(700, 800)
+        panel_button.setSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
+
         panel_info = InfoSidePanel()
+        panel_info.setFixedSize(500, 800)
+        panel_info.setSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
+
         panel_list = DepartmentList()
+        panel_list.setFixedSize(300, 900)
+        panel_list.setSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
+
         panel_search = EditText()
+        panel_search.setFixedSize(1170, 60)
+        panel_search.setSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
 
         # layout apps content
         layout_content = QtWidgets.QHBoxLayout()
@@ -23,6 +35,7 @@ class LauncherApps(QtWidgets.QMainWindow):
 
         content_widget = QtWidgets.QWidget()
         content_widget.setLayout(layout_content)
+        content_widget.setFixedSize(1200, 800)
 
         # apps content combine with search bar
         layout_content_vertical = QtWidgets.QVBoxLayout()
@@ -31,6 +44,7 @@ class LauncherApps(QtWidgets.QMainWindow):
 
         right_side_content = QtWidgets.QWidget()
         right_side_content.setLayout(layout_content_vertical)
+        right_side_content.setFixedSize(1200, 850)
 
         # Final layout
         all_layout_result = QtWidgets.QHBoxLayout()
@@ -39,6 +53,7 @@ class LauncherApps(QtWidgets.QMainWindow):
 
         result = QtWidgets.QWidget()
         result.setLayout(all_layout_result)
+        result.setFixedSize(1500, 900)
 
         # menampung sinyal
         panel_list.path_selected.connect(panel_button.select_department) # Dari sumber ke target sinyal
@@ -56,7 +71,13 @@ class ButtonAppsHolder(QtWidgets.QWidget):
         # apps1Button.setFixedSize(100,100)
         self.root_dir = None
         self.grid = QtWidgets.QGridLayout()
+        self.grid.setAlignment(QtCore.Qt.AlignmentFlag.AlignTop | QtCore.Qt.AlignmentFlag.AlignLeft )
+        self.grid.setContentsMargins(10,10,10,10)
+        # self.grid.
+
+        # self.grid.a
         self.setLayout(self.grid)
+        
 
     def select_department(self, department):
         self.update_root_dir(department)
@@ -64,8 +85,8 @@ class ButtonAppsHolder(QtWidgets.QWidget):
     def update_root_dir(self, path):
         self.root_dir = path
         print(f"selected dir : {self.root_dir}")
-
         self.cleanup_button()
+
 
         # ubah jadi long hand
         
@@ -143,7 +164,7 @@ class ButtonAppsHolder(QtWidgets.QWidget):
         # self.positions = [(i,j) for i in range(4) for j in range(3)] i and j change to row and col
         # To get positions coloumb coordinate
         self.positions = []
-        for row in range(4):
+        for row in range(5):
             for col in range(3):
                 self.positions.append((row,col))
 
@@ -152,18 +173,18 @@ class ButtonAppsHolder(QtWidgets.QWidget):
             data_list_each_button = [get_dir,get_png,get_txt,get_lnk]
             button = QtWidgets.QPushButton(icon=QtGui.QIcon(get_png),text=get_dir)
             button.setFixedSize(200, 100)
-            # button.move()
             button.setCheckable(True)
             button.setProperty("button_data", data_list_each_button)
+            button.setSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
             button.clicked.connect(self.slot_data_button_checked)
-            self.grid.addWidget(button, *positions, alignment=QtCore.Qt.AlignmentFlag.AlignTop)
-            # print(self.data_list_each_button)
-
+            button.setContentsMargins(10,10,10,10)
+            self.grid.addWidget(button, *positions, alignment=(QtCore.Qt.AlignmentFlag.AlignTop | QtCore.Qt.AlignmentFlag.AlignLeft ))
+            
+            
+        
     def cleanup_button(self):
-        for i in reversed(range(0, self.grid.count())):
-            if i == 0:
-                continue  
-            widget = self.grid.itemAt(i).widget()
+        for item in reversed(range(0, self.grid.count())): 
+            widget = self.grid.itemAt(item).widget()
             if widget:
                 widget.setParent(None)
 
@@ -172,7 +193,6 @@ class ButtonAppsHolder(QtWidgets.QWidget):
         print(f"emit from slot_data_button_checked= {get_list_data_button}")
         self.list_transfer.emit(get_list_data_button)
         
-
 
 # List Department
 class DepartmentList(QtWidgets.QWidget):
@@ -185,7 +205,7 @@ class DepartmentList(QtWidgets.QWidget):
 
         self.root_dir = r"lmn_tools"
 
-        list_department.setFixedSize(300,800)
+        list_department.setFixedSize(290,850)
 
         self.list_dir = []
         for item in os.listdir(self.root_dir):
@@ -216,7 +236,7 @@ class InfoSidePanel(QtWidgets.QWidget):
         self.info_layout = QtWidgets.QVBoxLayout()
 
         self.setLayout(self.info_layout)
-        self.setFixedSize(500,800)
+        self.setFixedSize(450,800)
     
     def get_connect_from_button(self, details):
         self.update_details_information(details)
@@ -228,19 +248,15 @@ class InfoSidePanel(QtWidgets.QWidget):
         self.description_list = list_button_details[2]
         self.shortcut_list = list_button_details[3]
 
-        # print(f"got data list from button: {self.title_list}")
-        # print(f"got data list from button: {self.icon_list}")
-        # print(f"got data list from button: {self.description_list}")
-        # print(f"got data list from button: {self.shortcut_list}")
         self.delete_layout_information()
 
         # Label Judul Applikasi
         title_apps = QtWidgets.QLabel(f"{self.title_list}")
-        title_apps.setFixedSize(500, 50)
+        title_apps.setFixedSize(450, 50)
 
         # Label Icon applikasi
         icon_apps = QtWidgets.QLabel()
-        icon_apps.setFixedSize(500, 200)
+        icon_apps.setFixedSize(450, 200)
 
 
         # Error handling ketika tidak ditemukan file image nya
@@ -251,7 +267,7 @@ class InfoSidePanel(QtWidgets.QWidget):
 
         # Information Window
         apps_description = QtWidgets.QPlainTextEdit()
-        apps_description.setFixedSize(500, 350)
+        apps_description.setFixedSize(450, 300)
         
         # Error handling ketika tidak ditemukan file description nya
         if self.description_list is not None:
@@ -262,7 +278,7 @@ class InfoSidePanel(QtWidgets.QWidget):
         
         # Button Run
         run_button = QtWidgets.QPushButton("RUN")
-        run_button.setFixedSize(500, 50)
+        run_button.setFixedSize(450, 50)
         run_button.clicked.connect(self.run_button_clicked)
 
         self.info_layout.addWidget(title_apps)
@@ -275,8 +291,6 @@ class InfoSidePanel(QtWidgets.QWidget):
 
     def delete_layout_information(self):
         for item in reversed(range(0,self.info_layout.count())):
-            if item == 0:
-                continue
             widget_item = self.info_layout.itemAt(item)
             if widget_item is not None:
                 widget = widget_item.widget()
@@ -289,7 +303,7 @@ class EditText(QtWidgets.QWidget):
     def __init__(self):
         super().__init__()
         textBar = QtWidgets.QLineEdit("Search Here")
-        textBar.setFixedSize(1100, 50)
+        textBar.setFixedSize(1130, 50)
 
         layout = QtWidgets.QHBoxLayout()
 
