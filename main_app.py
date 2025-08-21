@@ -7,39 +7,41 @@ from PySide6 import QtWidgets, QtCore, QtGui
 
 # UI
 class LauncherApps(QtWidgets.QMainWindow):
-    def __init__(self):
-        super().__init__()
-
         # TODO : Buat function pemisah
         # 1. buat function untuk memisahkan antara
         # a. UI
         # b. Event
         # c. private properties
+    def __init__(self):
+        super().__init__()
+        self.__private_properties()
+        self._ui_setup()
+        self._signal_container()
 
+    def __private_properties(self):
+        self.panel_button = ButtonAppsHolder()
+        self.panel_info = InfoSidePanel()
+        self.panel_list = DepartmentList()
+        self.panel_search = EditText()
+
+    # layout apps content
+    def _ui_setup(self):
         self.setWindowTitle("Apps Launcher")
         self.setFixedSize(1500, 900)
     
-        self.panel_button = ButtonAppsHolder()
         self.panel_button.setFixedSize(700, 800)
         self.panel_button.setSizePolicy(QtWidgets.QSizePolicy.Fixed,
-                                   QtWidgets.QSizePolicy.Fixed)
-
-        self.panel_info = InfoSidePanel()
+                                        QtWidgets.QSizePolicy.Fixed)
         self.panel_info.setFixedSize(500, 800)
         self.panel_info.setSizePolicy(QtWidgets.QSizePolicy.Fixed,
-                                 QtWidgets.QSizePolicy.Fixed)
-
-        self.panel_list = DepartmentList()
+                                      QtWidgets.QSizePolicy.Fixed)
         self.panel_list.setFixedSize(300, 900)
         self.panel_list.setSizePolicy(QtWidgets.QSizePolicy.Fixed,
-                                 QtWidgets.QSizePolicy.Fixed)
-
-        self.panel_search = EditText()
+                                      QtWidgets.QSizePolicy.Fixed)
         self.panel_search.setFixedSize(1170, 60)
         self.panel_search.setSizePolicy(QtWidgets.QSizePolicy.Fixed,
-                                   QtWidgets.QSizePolicy.Fixed)
-
-        # layout apps content
+                                        QtWidgets.QSizePolicy.Fixed)
+        
         layout_content = QtWidgets.QHBoxLayout()
         layout_content.addWidget(self.panel_button)
         layout_content.addWidget(self.panel_info)
@@ -69,12 +71,49 @@ class LauncherApps(QtWidgets.QMainWindow):
         self.setCentralWidget(result)
 
     # menampung sinyal
-    def signal_container(self):
+    def _signal_container(self):
         # Dari sumber ke target sinyal
-        self.panel_list.path_selected.connect(self.panel_button.select_department)
-        self.panel_button.list_transfer.connect(self.panel_info.get_connect_from_button)
+        self.panel_list.path_selected.connect(self.panel_button.create_button)
+        self.panel_button.list_transfer.connect(self.panel_info.update_details_information)
         self.panel_search.search_text_signal.connect(self.panel_button.get_signal_from_search)
 
+# List Department
+class DepartmentList(QtWidgets.QWidget):
+    path_selected = QtCore.Signal(str)
+
+    def __init__(self):
+        super().__init__()
+        self._ui_setup()
+
+    def _ui_setup(self):
+        list_department = QtWidgets.QListWidget()
+        list_department.setFixedSize(290, 850)
+
+        self.list_dir = self.get_dir_path()
+        list_department.addItems(self.list_dir)
+        list_department.itemClicked.connect(self.get_list_dir_name)
+
+        list_layout = QtWidgets.QVBoxLayout()
+        list_layout.addWidget(list_department)
+
+        self.setLayout(list_layout)
+
+    def get_dir_path(self):
+        # TODO buat jadi funciton sendiri
+        self.root_dir = "lmn_tools"
+        self.list_dir = []
+        for item_name in os.listdir(self.root_dir):
+            temp_dir = os.path.join(self.root_dir, item_name)
+            if os.path.isdir(temp_dir):
+                self.list_dir.append(item_name)
+        return self.list_dir
+    
+    def get_list_dir_name(self, item):
+        self.item_text = item.text()
+        self.path_department = os.path.join(self.root_dir,
+                                            self.item_text)
+        print(f"emmit{self.path_department}")
+        self.path_selected.emit(self.path_department)
 
 # Button apps
 class ButtonAppsHolder(QtWidgets.QWidget):
@@ -82,31 +121,31 @@ class ButtonAppsHolder(QtWidgets.QWidget):
 
     def __init__(self, parent=None):
         super().__init__(parent)
+        self._ui_setup()
 
+    def _ui_setup(self):
         self.root_dir = None
         self.grid = QtWidgets.QGridLayout()
         self.grid.setAlignment(QtCore.Qt.AlignmentFlag.AlignTop |
                                QtCore.Qt.AlignmentFlag.AlignLeft)
         self.grid.setContentsMargins(10, 10, 10, 10)
+        # Membuat container untuk button yang sudah di buat
+        self.button_group = QtWidgets.QButtonGroup()
+        self.button_group.setExclusive(True)
 
         self.setLayout(self.grid)
 
     # TODO
     # hapus unused function
-    def select_department(self, department):
-        self.update_root_dir(department)
-
     def update_root_dir(self, path):
         self.root_dir = path
         
         print(f"selected dir : {self.root_dir}")
         self.cleanup_button()
 
-        # ubah jadi long hand
-
-        # self.get_list_dir = [f for f in os.listdir(self.root_dir) if os.path.isdir(os.path.join(self.root_dir, f))]
-        # To get Directory ptah address
         self.get_list_dir = []
+        # output ['AdvancedRenamer', 'PureRef', 'ReNamer', 'ScreenToGif', 'UpdateCinesync', 'VideoToGif']
+        
         # TODO
         # jangan pakai native variable
         # eg: dir, type, list
@@ -114,97 +153,81 @@ class ButtonAppsHolder(QtWidgets.QWidget):
             full_path = os.path.join(self.root_dir, name_dir)
             if os.path.isdir(full_path):
                 self.get_list_dir.append(name_dir)
+        
+        self.get_specific_file()
 
-        # print(self.get_list_dir)
-        # output ['AdvancedRenamer', 'PureRef', 'ReNamer', 'ScreenToGif', 'UpdateCinesync', 'VideoToGif']
+        return self.get_list_dir
 
-        # get path file .png
+    # TODO : ini untuk apa?
+    # get path file function
+    def get_specific_file(self):
         self.get_file_png_list = []
+        self.get_file_txt_list = []
+        self.get_file_lnk_list = []
 
-        # TODO : ini untuk apa?
-        for png_file in os.listdir(self.root_dir):
+        for extention_file in os.listdir(self.root_dir):
             # mendapatkan path directoriy
-            full_path = os.path.join(self.root_dir, png_file)
-            png_found = None        # Nilai awal ketika tidak di temukan file PNG
-            # print(full_path)
+            full_path = os.path.join(self.root_dir, extention_file)
+            print(full_path)
+            png_found = None        
+            txt_found = None       
+            lnk_found = None       
             if os.path.isdir(full_path):
                 for a in os.listdir(full_path):
                     b = os.path.join(full_path, a)
                     # print(b)
                     if os.path.isfile(b):
                         if b.endswith(".png"):
-                            png_found = b       # Ketika file PNG di temukan akan mengangkut nilai berupa path address
+                            png_found = b      
+                        elif b.endswith(".txt"):
+                            txt_found = b
+                        elif b.endswith(".lnk"):
+                            lnk_found = b
 
-            if png_found is not None:
-                # jika terdapat nilai paath maka akan di append
+            if png_found:
+                # jika terdapat nilai path maka akan di append
                 self.get_file_png_list.append(png_found)
             else:
                 # jika tidak akan mengirim string kosong
                 self.get_file_png_list.append(None)
 
-        # print(self.get_file_png_list)
-
-        # TODO ini untuk apa?
-        # get path file .txt
-        self.get_file_txt_list = []
-        for txt_file in os.listdir(self.root_dir):
-            # mendapatkan path directoriy
-            full_path = os.path.join(self.root_dir, txt_file)
-            txt_found = None        # Nilai awal ketika tidak di temukan file TXT
-            # print(full_path)
-            if os.path.isdir(full_path):
-                for a in os.listdir(full_path):
-                    b = os.path.join(full_path, a)
-                    # print(b)
-                    if os.path.isfile(b):
-                        if b.endswith(".txt"):
-                            txt_found = b       # Ketika file TXT di temukan akan mengangkut nilai berupa path address
-
-            if txt_found is not None:
-                # jika terdapat nilai paath maka akan di append
+            if txt_found:
+                # jika terdapat nilai path maka akan di append
                 self.get_file_txt_list.append(txt_found)
             else:
                 # jika tidak akan mengirim string kosong
                 self.get_file_txt_list.append(None)
 
-        # TODO ubah jadi function agar tidak looping
-        # buat validasi text, validasi icon apakah ada atau tidak
-
-        # get path file .lnk
-        self.get_file_lnk_list = []
-        for lnk_file in os.listdir(self.root_dir):
-            # mendapatkan path directoriy
-            full_path = os.path.join(self.root_dir,
-                                     lnk_file)
-            # Nilai awal ketika tidak di temukan file LNK
-            lnk_found = None
-            # print(full_path)
-            if os.path.isdir(full_path):
-                for a in os.listdir(full_path):
-                    b = os.path.join(full_path, a)
-                    # print(b)
-                    if os.path.isfile(b):
-                        if b.endswith(".lnk"):
-                            lnk_found = b       # Ketika file LNK di temukan akan mengangkut nilai berupa path address
-
-            if lnk_found is not None:
-                # jika terdapat nilai paath maka akan di append
+            if lnk_found:
+                # jika terdapat nilai path maka akan di append
                 self.get_file_lnk_list.append(lnk_found)
             else:
                 # jika tidak akan mengirim string kosong
                 self.get_file_lnk_list.append(None)
 
-        # self.positions = [(i,j) for i in range(4) for j in range(3)] i and j change to row and col
-        # To get positions coloumb coordinate
+    # To get positions coloumb coordinate
+    def get_grid_coordinate(self):
         self.positions = []
         for row in range(5):
             for col in range(3):
                 self.positions.append((row, col))
-
-        # Membuat container untuk button yang sudah di buat
-        self.button_group = QtWidgets.QButtonGroup()
-        self.button_group.setExclusive(True)
-
+        return self.positions
+    
+    # Merubah title case bersambung menambahkan space sebelum uppercase letter di button
+    def fixed_title_letter(self,get_dir):
+        display_text = ''
+        for text, word in enumerate(get_dir):
+            if word.isupper() and text != 0:
+                display_text += ' ' + word
+            else:
+                display_text += word
+        return display_text
+    
+    # TODO
+    # buat function dengan tujuan create_button
+    def create_button(self,path_address):
+        self.positions = self.get_grid_coordinate()
+        self.get_list_dir = self.update_root_dir(path_address)
         # button properties
         # TODO buat jadi function sendiri
         for positions, get_dir, get_png, get_txt, get_lnk in zip(self.positions,
@@ -214,16 +237,10 @@ class ButtonAppsHolder(QtWidgets.QWidget):
                                                                  self.get_file_lnk_list):
             data_list_each_button = [get_dir, get_png, get_txt, get_lnk]
 
-            # Merubah title case bersambung menambahkan space sebelum uppercase letter di button
-            display_text = ''
-            for text, word in enumerate(get_dir):
-                if word.isupper() and text != 0:
-                    display_text += ' ' + word
-                else:
-                    display_text += word
+            title_fixed = self.fixed_title_letter(get_dir)
 
             button = QtWidgets.QPushButton(icon=QtGui.QIcon(get_png),
-                                           text=display_text)
+                                           text=title_fixed)
 
             button.setFixedSize(200, 100)
             button.setCheckable(True)
@@ -235,11 +252,6 @@ class ButtonAppsHolder(QtWidgets.QWidget):
             self.button_group.addButton(button)
             self.grid.addWidget(button, *positions, alignment=(QtCore.Qt.AlignmentFlag.AlignTop |
                                                                QtCore.Qt.AlignmentFlag.AlignLeft))
-
-    # TODO
-    # buat function dengan tujuan create_button
-
-    # def create_button(self,data):
 
     def cleanup_button(self):
         for item in reversed(range(0, self.grid.count())):
@@ -266,50 +278,16 @@ class ButtonAppsHolder(QtWidgets.QWidget):
             else:
                 button.hide()
 
-# List Department
-
-
-class DepartmentList(QtWidgets.QWidget):
-    path_selected = QtCore.Signal(str)
-
-    def __init__(self):
-        super().__init__()
-
-        self.root_dir = "lmn_tools"
-
-        list_department = QtWidgets.QListWidget()
-        list_department.setFixedSize(290, 850)
-
-        self.list_dir = []
-
-        # TODO buat jadi funciton sendiri
-        for item in os.listdir(self.root_dir):
-            temp_dir = os.path.join(self.root_dir, item)
-            if os.path.isdir(temp_dir):
-                self.list_dir.append(item)
-
-        list_department.addItems(self.list_dir)
-        list_department.itemClicked.connect(self.get_list_dir_name)
-
-        list_layout = QtWidgets.QVBoxLayout()
-        list_layout.addWidget(list_department)
-
-        self.setLayout(list_layout)
-
-    def get_list_dir_name(self, item):
-        self.item_text = item.text()
-        self.path_department = os.path.join(self.root_dir,
-                                            self.item_text)
-        print(f"emmit{self.path_department}")
-        self.path_selected.emit(self.path_department)
-
 # Info Panel
-
-
 class InfoSidePanel(QtWidgets.QWidget):
     def __init__(self):
         super().__init__()
+        self._ui_setup()
 
+    def _private_function(self):
+        pass
+
+    def _ui_setup(self):
         # Layout
         self.info_layout = QtWidgets.QVBoxLayout()
 
@@ -317,9 +295,6 @@ class InfoSidePanel(QtWidgets.QWidget):
         self.setFixedSize(450, 800)
 
     # TODO hapus function yang berlebih
-    def get_connect_from_button(self, details):
-        self.update_details_information(details)
-
     def update_details_information(self, list_details):
         # Urutan data list yang di dapat [get_dir,get_png,get_txt,get_lnk]
         list_button_details = list_details
@@ -331,14 +306,8 @@ class InfoSidePanel(QtWidgets.QWidget):
         self.delete_layout_information()
 
         # Merubah title case bersambung menambahkan space sebelum uppercase letter di title
-        display_text = ""
-
         # TODO buat jadi function
-        for text, word in enumerate(self.title_list):
-            if word.isupper() and text != 0:
-                display_text += ' ' + word
-            else:
-                display_text += word
+        display_text = ButtonAppsHolder.fixed_title_letter(self, self.title_list)
 
         # Label Judul Applikasi
         title_apps = QtWidgets.QLabel(display_text)
@@ -354,8 +323,7 @@ class InfoSidePanel(QtWidgets.QWidget):
         if self.icon_list:
             icon_apps.setPixmap(QtGui.QPixmap(self.icon_list).scaled(100, 100))
         else:
-            icon_apps.setPixmap(QtGui.QPixmap(
-                r"icon\owl.png").scaled(100, 100))
+            icon_apps.setPixmap(QtGui.QPixmap(r"icon\owl.png").scaled(100, 100))
 
         # Information Window
         apps_description = QtWidgets.QPlainTextEdit()
@@ -363,7 +331,7 @@ class InfoSidePanel(QtWidgets.QWidget):
 
         # Error handling ketika tidak ditemukan file description nya
         # TODO: perbaiki penulisan logic
-        if self.description_list is not None:
+        if self.description_list:
             file = open(self.description_list, mode="r")
             apps_description.insertPlainText(file.read())
         else:
@@ -390,13 +358,15 @@ class InfoSidePanel(QtWidgets.QWidget):
                 if widget is not None:
                     widget.setParent(None)
 
-
 # Search Bar
 class EditText(QtWidgets.QWidget):
     search_text_signal = QtCore.Signal(str)
 
     def __init__(self):
         super().__init__()
+        self._ui_setup()
+    
+    def _ui_setup(self):
         self.text_bar = QtWidgets.QLineEdit()
         self.text_bar.setPlaceholderText("Search Here")
         self.text_bar.setFixedSize(1130, 50)
@@ -409,7 +379,6 @@ class EditText(QtWidgets.QWidget):
 
     def get_signal_text(self, text):
         self.search_text_signal.emit(text)
-
 
 def main():
     # seperti pembungkus dari semua program untuk di jalankan programnya
