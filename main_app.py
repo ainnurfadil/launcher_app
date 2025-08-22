@@ -1,6 +1,7 @@
 # Mengimport componen dari Qt
 import sys
 import os
+import re
 
 from PySide6 import QtWidgets, QtCore, QtGui
 # import library as library
@@ -74,7 +75,7 @@ class LauncherApps(QtWidgets.QMainWindow):
     def _signal_container(self):
         # Dari sumber ke target sinyal
         self.panel_list.path_selected.connect(self.panel_button.create_button)
-        self.panel_button.list_transfer.connect(self.panel_info.update_details_information)
+        self.panel_button.list_transfer.connect(self.panel_info.create_widget_from_list_detail)
         self.panel_search.search_text_signal.connect(self.panel_button.get_signal_from_search)
 
 # List Department
@@ -100,7 +101,7 @@ class DepartmentList(QtWidgets.QWidget):
 
     def get_dir_path(self):
         # TODO buat jadi funciton sendiri
-        self.root_dir = "lmn_tools"
+        self.root_dir = "launcher_app\lmn_tools"
         self.list_dir = []
         for item_name in os.listdir(self.root_dir):
             temp_dir = os.path.join(self.root_dir, item_name)
@@ -110,6 +111,7 @@ class DepartmentList(QtWidgets.QWidget):
     
     def get_list_dir_name(self, item):
         self.item_text = item.text()
+        print(f"get_list_dir_name = {self.item_text}")
         self.path_department = os.path.join(self.root_dir,
                                             self.item_text)
         print(f"emmit{self.path_department}")
@@ -269,11 +271,14 @@ class ButtonAppsHolder(QtWidgets.QWidget):
                 print(f"Button {button.text()} is checked")
 
     # TODO cari tahu logic search yang benar pada text
-    def get_signal_from_search(self, text):
+    def get_signal_from_search(self, text_search):
         for button in self.button_group.buttons():
-            if text.strip() == "":
+            self.got_button_text = button.text()
+            if text_search.strip() == "":
                 button.show()
-            elif button.text().lower() == text.strip().lower():
+            # elif self.got_button_text.lower() == text_search.strip().lower():
+            #     button.show()
+            elif re.search(text_search.lower(),self.got_button_text.lower()):
                 button.show()
             else:
                 button.hide()
@@ -284,9 +289,6 @@ class InfoSidePanel(QtWidgets.QWidget):
         super().__init__()
         self._ui_setup()
 
-    def _private_function(self):
-        pass
-
     def _ui_setup(self):
         # Layout
         self.info_layout = QtWidgets.QVBoxLayout()
@@ -295,56 +297,56 @@ class InfoSidePanel(QtWidgets.QWidget):
         self.setFixedSize(450, 800)
 
     # TODO hapus function yang berlebih
-    def update_details_information(self, list_details):
+    
+    def create_widget_from_list_detail(self, list_details):
         # Urutan data list yang di dapat [get_dir,get_png,get_txt,get_lnk]
         list_button_details = list_details
         self.title_list = list_button_details[0]
         self.icon_list = list_button_details[1]
         self.description_list = list_button_details[2]
         self.shortcut_list = list_button_details[3]
-
+        
         self.delete_layout_information()
 
         # Merubah title case bersambung menambahkan space sebelum uppercase letter di title
-        # TODO buat jadi function
+        # TODO buat jadi function (menggunakan function yang sudah ada)
         display_text = ButtonAppsHolder.fixed_title_letter(self, self.title_list)
 
-        # Label Judul Applikasi
-        title_apps = QtWidgets.QLabel(display_text)
-        title_apps.setFixedSize(450, 50)
+        # Label Judul Applikasi widget
+        self.title_apps = QtWidgets.QLabel(display_text)
+        self.title_apps.setFixedSize(450, 50)
 
-        # Label Icon applikasi
-        icon_apps = QtWidgets.QLabel()
-        icon_apps.setFixedSize(450, 200)
-        icon_apps.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
+        # Label Icon applikasi widget
+        self.icon_apps = QtWidgets.QLabel()
+        self.icon_apps.setFixedSize(450, 200)
+        self.icon_apps.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
 
         # Error handling ketika tidak ditemukan file image nya
-        # if self.icon_list is not None:
         if self.icon_list:
-            icon_apps.setPixmap(QtGui.QPixmap(self.icon_list).scaled(100, 100))
-        else:
-            icon_apps.setPixmap(QtGui.QPixmap(r"icon\owl.png").scaled(100, 100))
+            self.icon_apps.setPixmap(QtGui.QPixmap(self.icon_list).scaled(100, 100))
+        elif self.icon_list is None:
+            self.icon_apps.setPixmap(QtGui.QPixmap(r"launcher_app\icon\owl.png").scaled(100, 100))
 
-        # Information Window
-        apps_description = QtWidgets.QPlainTextEdit()
-        apps_description.setFixedSize(450, 300)
-
+        # Information widget
+        self.apps_description = QtWidgets.QPlainTextEdit()
+        self.apps_description.setFixedSize(450, 300)
+     
         # Error handling ketika tidak ditemukan file description nya
         # TODO: perbaiki penulisan logic
         if self.description_list:
             file = open(self.description_list, mode="r")
-            apps_description.insertPlainText(file.read())
-        else:
-            apps_description.insertPlainText("There is no description here")
+            self.apps_description.insertPlainText(file.read())
+        elif self.description_list is None:
+            self.apps_description.insertPlainText("There is no description here")
 
         # Button Run
         run_button = QtWidgets.QPushButton("RUN")
         run_button.setFixedSize(450, 50)
         run_button.clicked.connect(self.run_button_clicked)
 
-        self.info_layout.addWidget(title_apps)
-        self.info_layout.addWidget(icon_apps)
-        self.info_layout.addWidget(apps_description)
+        self.info_layout.addWidget(self.title_apps)
+        self.info_layout.addWidget(self.icon_apps)
+        self.info_layout.addWidget(self.apps_description)
         self.info_layout.addWidget(run_button)
 
     def run_button_clicked(self):
